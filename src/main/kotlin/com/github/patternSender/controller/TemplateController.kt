@@ -1,6 +1,7 @@
 package com.github.patternSender.controller
 
 import com.github.patternSender.dto.MessageRequest
+import com.github.patternSender.dto.SendResponse
 import com.github.patternSender.dto.TemplateRequest
 import com.github.patternSender.service.TemplateService
 import kotlinx.coroutines.FlowPreview
@@ -17,7 +18,7 @@ class TemplateController(private val templateService: TemplateService) {
     }
 
     @PostMapping("/send")
-    suspend fun sendMessage(@RequestBody request: MessageRequest) {
-        templateService.sendMessage(request)
+    suspend fun sendMessage(@RequestBody request: MessageRequest): SendResponse {
+        return SendResponse(templateService.sendMessage(request))
     }
 }

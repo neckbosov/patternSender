@@ -13,8 +13,8 @@ import com.github.patternSender.repository.RecipientRepository
 import com.github.patternSender.repository.TemplateRecipientRepository
 import com.github.patternSender.repository.TemplateRepository
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
@@ -44,11 +44,11 @@ class TemplateService(
         }
     }
 
-    suspend fun sendMessage(request: MessageRequest) {
+    suspend fun sendMessage(request: MessageRequest): List<String> {
         val templateEntity =
             templateRepository.findByTemplateId(request.templateId) ?: throw TemplateNotFoundException()
         val message = fillTemplate(templateEntity.templateString, request.variables[0])
-        templateRecipientRepository.findAllByTemplateId(templateEntity.id).map {
+        return templateRecipientRepository.findAllByTemplateId(templateEntity.id).map {
             recipientRepository.findById(it.recipientId)!!
         }.map { recipient ->
             webClient
@@ -58,9 +58,7 @@ class TemplateService(
                 .awaitExchange {
                     it.awaitBody<String>()
                 }
-        }.collect {
-            println("Sent $it")
-        }
+        }.toList()
     }
 
     private fun fillTemplate(template: String, variables: Map<String, String>): String = buildString {
